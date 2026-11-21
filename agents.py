@@ -91,10 +91,24 @@ def _extract_total_amount(report_text: str, final_result: str) -> float:
 
 
 def _extract_decision(final_result: str) -> str:
-    if "驳回" in final_result:
-        return "驳回"
-    if "同意采购" in final_result:
+    approval_match = re.search(
+        r"(?:最终结论|审批意见|审批结论)\s*[：:]\s*(同意采购|驳回)",
+        final_result,
+    )
+    if approval_match:
+        return approval_match.group(1)
+
+    final_lines = [line.strip() for line in final_result.splitlines() if line.strip()]
+    for line in reversed(final_lines):
+        if "同意采购" in line and "驳回" not in line:
+            return "同意采购"
+        if re.search(r"(?:驳回|拒绝)(?:采购)?", line) and "不构成" not in line:
+            return "驳回"
+
+    if re.search(r"(?:最终结论|审批意见|审批结论)[^。\n]*同意采购", final_result):
         return "同意采购"
+    if re.search(r"(?:最终结论|审批意见|审批结论)[^。\n]*驳回", final_result):
+        return "驳回"
     return final_result[:500]
 
 
