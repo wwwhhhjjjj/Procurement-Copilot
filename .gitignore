@@ -1,0 +1,15 @@
+.env
+*.db
+*.sqlite
+*.sqlite3
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.streamlit/secrets.toml
+key.txt
+test.pdf
+test (1).pdf
+test.docx

@@ -1,0 +1,41 @@
+services:
+  mcp_server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: uvicorn mcp_server:app --host 0.0.0.0 --port 8001
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./:/app
+
+  backend_api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: uvicorn api:app --host 0.0.0.0 --port 8000
+    ports:
+      - "8000:8000"
+    environment:
+      MCP_SERVER_URL: http://mcp_server:8001
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-your_deepseek_api_key_here}
+      OPENAI_API_BASE: ${OPENAI_API_BASE:-https://api.deepseek.com/v1}
+      OPENAI_MODEL_NAME: ${OPENAI_MODEL_NAME:-deepseek-chat}
+    depends_on:
+      - mcp_server
+    volumes:
+      - ./:/app
+
+  frontend_app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: streamlit run app.py --server.address=0.0.0.0 --server.port=8501
+    ports:
+      - "8501:8501"
+    depends_on:
+      - backend_api
+    environment:
+      BACKEND_API_URL: http://backend_api:8000
+    volumes:
+      - ./:/app
